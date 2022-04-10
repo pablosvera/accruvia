@@ -1,0 +1,26 @@
+{
+  // Use IntelliSense para saber los atributos posibles.
+  // Mantenga el puntero para ver las descripciones de los existentes atributos.
+  // Para más información, visite: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Test poorManTweet",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}\\manage.py",
+      "args": ["test", "poorManTwitter"],
+      "django": true,
+      "justMyCode": true
+    },
+    {
+      "name": "Python: Django",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}\\manage.py",
+      "args": ["runserver", "8080"],
+      "django": true,
+      "justMyCode": true
+    }
+  ]
+}
