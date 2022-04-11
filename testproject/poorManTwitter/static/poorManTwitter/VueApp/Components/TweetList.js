@@ -3,6 +3,7 @@ app.component('tweet-list', {
     return {
       tweets: [],
       timer: null,
+      sort: {},
     };
   },
   template:
@@ -11,16 +12,20 @@ app.component('tweet-list', {
     <table class="table">
     <thead>
       <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Tweet</th>
-        <th scope="col">Date</th>
+        <th scope="col" @click="sortBy('date')" tabindex="0" @keyup.enter="sortBy('date')" @keyup.space="sortBy('date')">
+          Time {{sort.date == '' ? '⭡': sort.date == '-' ? '⭣': '↕'}}
+        </th>
+        <th scope="col">Message</th>
+        <th scope="col" @click="sortBy('name')" tabindex="0" @keyup.enter="sortBy('name')" @keyup.space="sortBy('name')">
+          Name {{sort.name == '' ? '⭡': sort.name == '-' ? '⭣': '↕'}}
+        </th>
       </tr>
     </thead>
     <tbody v-if="tweets.length">
       <tr v-for="(tweet, index) in tweets" :key="index">
-        <td>{{tweet.name}}</td>
-        <td>{{tweet.text}}</td>
         <td>{{new Date(tweet.date).toLocaleString()}}</td>
+        <td>{{tweet.text}}</td>
+        <td>{{tweet.name}}</td>
       </tr>
     </tbody>
     <tbody v-else>
@@ -37,8 +42,15 @@ app.component('tweet-list', {
         this.tweets = tweets;
       };
 
+      let sortFields = Object.keys(this.sort)
+        .map((key) => `${this.sort[key]}${key}`)
+        .join('&');
+      if (sortFields) {
+        sortFields = `sort=${sortFields}`;
+      }
+
       $.ajax({
-        url: './tweets',
+        url: `./tweets?${sortFields}`,
         type: 'GET',
         dataType: 'json',
       })
@@ -53,12 +65,34 @@ app.component('tweet-list', {
     cancelAutoUpdate() {
       clearInterval(this.timer);
     },
+    sortBy(field) {
+      // if null then set to ascending
+      if (this.sort[field] === undefined) {
+        this.sort[field] = '';
+      }
+      // if '' (ascending) then set to descending
+      else if (this.sort[field] === '') {
+        this.sort[field] = '-';
+      }
+      // otherwise set to null
+      else {
+        delete this.sort[field];
+      }
+      this.getTweets();
+    },
   },
   created() {
     this.getTweets();
-    this.timer = setInterval(this.getTweets, 3000);
+    this.timer = setInterval(this.getTweets, 5000);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.cancelAutoUpdate();
+  },
+  watch: {
+    update: function (reload) {
+      if (reload) {
+        this.getTweets();
+      }
+    },
   },
 });

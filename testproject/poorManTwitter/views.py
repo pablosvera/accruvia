@@ -7,15 +7,15 @@ from rest_framework import status
 
 
 def index(request):
-    latest_question_list = Tweet.objects.order_by('-date', '-name')
-    context = {'latest_question_list': latest_question_list}
-    return render(request, 'poorManTwitter/index.html', context)
+    return render(request, 'poorManTwitter/index.html')
 
 
 class Tweets(APIView):
     def get(self, request):
-        # I return the tweets showing the most recent tweets first
-        tweets = Tweet.objects.all().order_by('-date', '-name')
+        tweets = Tweet.objects.all()
+        sort_params = request.query_params.getlist('sort')
+        for sort_param in sort_params:
+            tweets = tweets.order_by(sort_param)
         serializer = TweetSerializer(tweets, many=True)
         return JsonResponse(serializer.data, safe=False)
 

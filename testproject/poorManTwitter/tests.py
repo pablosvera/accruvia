@@ -37,22 +37,42 @@ class QuestionIndexViewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, b'[]')
 
-    def test_tweets_should_be_ordered(self):
+    def test_tweets_should_be_ordered_by_name(self):
         """
-        Tweets should be ordered by creation date and name.
+        Tweets should be ordered by creation name desc.
         """
         tweet_text = 'random text'
         tweet_name = 'random name'
-        create_tweet(tweet_text, tweet_name)
+        create_tweet(tweet_text + ' 1', tweet_name + ' 1')
         create_tweet(tweet_text + ' 2', tweet_name + ' 2')
 
-        response = self.client.get(reverse('tweets'))
+        response = self.client.get(reverse('tweets') + '?sort=-name')
         tweets = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(tweets[0]['text'], tweet_text + ' 2')
-        self.assertEqual(tweets[1]['text'], tweet_text)
+        self.assertEqual(tweets[1]['text'], tweet_text + ' 1')
         self.assertEqual(tweets[0]['name'], tweet_name + ' 2')
-        self.assertEqual(tweets[1]['name'], tweet_name)
+        self.assertEqual(tweets[1]['name'], tweet_name + ' 1')
+        date_first_tweet = parser.parse(tweets[1]['date'])
+        date_second_tweet = parser.parse(tweets[0]['date'])
+        self.assertGreaterEqual(date_second_tweet, date_first_tweet)
+    
+    def test_tweets_should_be_ordered_by_date(self):
+        """
+        Tweets should be ordered by creation date asc.
+        """
+        tweet_text = 'random text'
+        tweet_name = 'random name'
+        create_tweet(tweet_text + ' 1', tweet_name + ' 1')
+        create_tweet(tweet_text + ' 2', tweet_name + ' 2')
+
+        response = self.client.get(reverse('tweets') + '?sort=date')
+        tweets = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(tweets[0]['text'], tweet_text + ' 2')
+        self.assertEqual(tweets[1]['text'], tweet_text + ' 1')
+        self.assertEqual(tweets[0]['name'], tweet_name + ' 2')
+        self.assertEqual(tweets[1]['name'], tweet_name + ' 1')
         date_first_tweet = parser.parse(tweets[1]['date'])
         date_second_tweet = parser.parse(tweets[0]['date'])
         self.assertGreaterEqual(date_second_tweet, date_first_tweet)
